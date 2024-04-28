@@ -11,10 +11,17 @@ dotenv.config({
 
 
 
-connectDB();
-
-
-
+connectDB()
+.then(()=>{
+    app.listen(process.env.Port || 8000,()=>{
+        console.log(`App is listening.${
+            process.env.Port
+        }`);
+    })
+})
+.catch((error)=>{
+    console.log("Error in mongodb.",error);
+})
 
 
 

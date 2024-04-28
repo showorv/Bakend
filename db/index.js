@@ -5,7 +5,7 @@ import { DB_NAME } from "../src/constants.js";
 const connectDB = async()=>{
     try{
         const connectionins= await mongoose.connect(`${process.env.Mongodb_URI}/${DB_NAME}`);
-        console.log(`mongodb conneted:: Db host:${connectionins.connection.host}`);
+        console.log(`\n mongodb conneted.. Db host:${connectionins.connection.host}`);
     }catch(error){
         console.log("Error",error);
         process.exit(1);
