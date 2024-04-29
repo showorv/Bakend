@@ -13,14 +13,11 @@ const videoSchema = new mongoose.Schema({
         type: String, 
         required: true
     },
-    tdescription:{
+    description:{
         type: String, 
         required: true
     },
-    tittle:{
-        type: Number, 
-        required: true
-    },
+  
 
     views:{
         type: Number,
