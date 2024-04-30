@@ -1,6 +1,6 @@
 import { asynchandle } from "../utils/aynchandle.js";
 import { Errorhandle } from "../utils/Errorhandle.js";
-
+import { User } from "../models/user.models.js";
 const registerUser = asynchandle(async(req,res)=>{
 
     // this is Logic build 
@@ -27,7 +27,7 @@ const registerUser = asynchandle(async(req,res)=>{
     
   }
 
-  const existuser= user.findOne({
+  const existuser= User.findOne({
     $or: [{ username },{ email }]
   })
 
