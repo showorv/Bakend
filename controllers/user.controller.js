@@ -21,8 +21,11 @@ const registerUser = asynchandle(async(req,res)=>{
   //return res
 
   //get user details, data handaling
+
   const {fullname, username, password, email}=req.body
   console.log("username:",username);
+  console.log("FULL NAME:",fullname);
+  console.log("Email:",email);
 
   //validation
   if([username,fullname,email,password].some((field)=>field?.trim()==="")){
@@ -33,7 +36,7 @@ const registerUser = asynchandle(async(req,res)=>{
   }
 
   //user already exist or not
-  const existuser= User.findOne({
+  const existuser= await User.findOne({
     $or: [{ username },{ email }]
   })
 
@@ -42,10 +45,16 @@ const registerUser = asynchandle(async(req,res)=>{
   }
 
 
+  console.log(req.files);
 
   //check for avatar or coverimage
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverImagePath= req.files?.coverImage[0]?.path;
+  // const coverImagePath= req.files?.coverImage[0]?.path; //evbe rkhle coverimage na dile error ashbe.jehetu mandatory na tai onnovbe likhte hbe
+
+  let coverImagePath;
+   if(req.files && Array.isArray(req.files.coverImage)&& req.files.coverImage.length>0){
+    coverImagePath= req.files.coverImage[0].path;
+   }
 
   if(!avatarLocalPath){
     throw new Errorhandle(404, "Avatar file is required")
@@ -53,10 +62,10 @@ const registerUser = asynchandle(async(req,res)=>{
 
   //upload in cloudinary
 
-  const avatarup= await uploadOncloudinary(avatarLocalPath);
-  const cover= await uploadOncloudinary(coverImagePath);
+  const avatar= await uploadOncloudinary(avatarLocalPath);
+  const coverImage= await uploadOncloudinary(coverImagePath);
 
-  if(!avatarup){
+  if(!avatar){
     throw new Errorhandle(404,"Not find ");
   }
 
