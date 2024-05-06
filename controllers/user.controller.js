@@ -12,11 +12,11 @@ const accessAndRefreshTokens= async(userId)=>{
     const user= await User.findById(userId)
    
     const accessToken= User.generateAccessToken()
-    const refreshToken=User.generateRefreshToken()
+    const refreshTokenn=User.generateRefreshToken()
 
-    user.refreshToken=refreshToken;
+    user.refreshToken=refreshTokenn;
     await user.save({ validateBeforeSave:false })
-     return { accessToken, refreshToken };
+     return { accessToken, refreshTokenn };
 
 
 
@@ -258,7 +258,42 @@ const logoutUser= asynchandle(async(req,res)=>
 
   })
 
+  const oldNewPass = asynchandle(async(req,res)=>{
+
+    const {oldPassword, newPassword}= req.body
+
+    const user= await User.findById(req.user?._id)
+    const ispasscorrect= await user.isPasswordCorrect(oldPassword)
+
+    if(!ispasscorrect){
+      throw new Errorhandle(400,"Invalid old password")
+
+    }
+
+    user.password= newPassword
+
+    await user.save({ validateBeforeSave: false})
+
+    return res.status(200)
+    .json(
+      new Apiresponse(400, {}, "Password Changed Successfully")
+    )
+
+
+
+
+
+  })
+
+  const currentUser = asynchandle(async(req,res)=>{
+
+    return res.status(200).
+    json(new Apiresponse(200, req.user, "User defined Successfully"))
+  })
+
 export{registerUser,
   loginUser,
   logoutUser,
-refreshAccessToken}  ;
+refreshAccessToken,
+oldNewPass,
+currentUser}  ;
