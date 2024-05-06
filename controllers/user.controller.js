@@ -6,17 +6,17 @@ import { Apiresponse } from "../utils/Apiresponse.js";
 import jsonwebtoken from "jsonwebtoken"
 //refresh and accesstoken
 
-const accessAndRefreshTokens= async(userId)=>{
+const accessandRefreshTokens= async(userId)=>{
   try {
     
     const user= await User.findById(userId)
    
-    const accessToken= User.generateAccessToken()
-    const refreshTokenn=User.generateRefreshToken()
+    const accessToken= await User.generateAccessToken()
+    const refreshToken=await User.generateRefreshToken()
 
-    user.refreshToken=refreshTokenn;
+    user.refreshToken=refreshToken;
     await user.save({ validateBeforeSave:false })
-     return { accessToken, refreshTokenn };
+     return { accessToken,refreshToken };
 
 
 
@@ -150,7 +150,7 @@ const loginUser= asynchandle(async(req,res)=>{
   throw new Errorhandle(400,"password not correct")
  }
 //declare access and refreshtoken here
-  const {accessToken,refreshToken}= await accessAndRefreshTokens(user._id)
+  const {accessToken,refreshToken}= await accessandRefreshTokens(user._id)
 
   //password and refrershtoken remove
 
@@ -295,5 +295,6 @@ export{registerUser,
   loginUser,
   logoutUser,
 refreshAccessToken,
+accessandRefreshTokens,
 oldNewPass,
 currentUser}  ;
