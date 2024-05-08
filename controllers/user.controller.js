@@ -4,6 +4,7 @@ import { User } from "../models/user.models.js";
 import { uploadOncloudinary } from "../utils/cloudinary.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
 import jsonwebtoken from "jsonwebtoken"
+
 //refresh and accesstoken
 
 const accessandRefreshTokens= async(userId)=>{
@@ -14,7 +15,7 @@ const accessandRefreshTokens= async(userId)=>{
     const accessToken= await User.generateAccessToken()
     const refreshToken=await User.generateRefreshToken()
 
-    user.refreshToken=refreshToken;
+    user.refreshToken=refreshToken
     await user.save({ validateBeforeSave:false })
      return { accessToken,refreshToken };
 
@@ -258,6 +259,8 @@ const logoutUser= asynchandle(async(req,res)=>
 
   })
 
+
+  //password change proccess
   const oldNewPass = asynchandle(async(req,res)=>{
 
     const {oldPassword, newPassword}= req.body
@@ -280,21 +283,113 @@ const logoutUser= asynchandle(async(req,res)=>
     )
 
 
-
-
-
   })
 
+  //currrent user defined
   const currentUser = asynchandle(async(req,res)=>{
 
     return res.status(200).
     json(new Apiresponse(200, req.user, "User defined Successfully"))
   })
 
-export{registerUser,
+
+//update account
+  const updateAccountDetials= asynchandle(async(req,res)=>{
+
+    const {fullname, email}= req.body
+
+    if(!(fullname || email)){
+      throw new Errorhandle(404,"fullname or email required")
+    }
+
+    const user = await  User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set:{
+          fullname, //fullname: fullname evbe duivbei likha jay
+          email: email
+        }
+      },
+      {new: true}
+    ).select("-password")
+
+
+    return res.status(200).
+    json(new Apiresponse(200, user, "Account updated Successfully"))
+
+  })
+
+  //update avatar
+  const updateAvatar= asynchandle(async(req,res)=>{
+    const avatarLocalPath= req.file?.path
+
+    if(!avatarLocalPath){
+      throw new Errorhandle(404,"Avatar file is missing")
+    }
+
+    //todo : delete previous avatar. Eta shikhte hbe....... Ekta util banaite hbe
+
+   const avatar= await uploadOncloudinary(avatarLocalPath)
+
+   if(!avatar.url){
+    throw new Errorhandle(404,"Error while uploading")
+   }
+
+  const user= await User.findByIdAndUpdate(
+
+    req.user?._id,
+    {
+      $set:{
+        avatar: avatar.url
+      }
+    },
+    {new: true}
+   ).select("-password")
+
+   return res.status(200).
+   json(new Apiresponse(200, user,"Avatar image updated successfully" ))
+   
+  })
+
+  const updateCoverImage= asynchandle(async(req,res)=>{
+    const coverImageLocalPath= req.file?.path
+
+    if(!coverImageLocalPath){
+      throw new Errorhandle(404,"Cover file is missing")
+    }
+
+   const coverImage= await uploadOncloudinary(coverImageLocalPath)
+
+   if(!coverImage.url){
+    throw new Errorhandle(404,"Error while uploading")
+   }
+
+   const user= await User.findByIdAndUpdate(
+
+    req.user?._id,
+    {
+      $set:{
+        coverImage: coverImage.url
+      }
+    },
+    {new: true}
+   ).select("-password")
+
+   return res.status(200).
+   json(new Apiresponse(200, user,"Cover image updated successfully" ))
+   
+  })
+
+
+
+
+export {registerUser,
   loginUser,
   logoutUser,
 refreshAccessToken,
 accessandRefreshTokens,
 oldNewPass,
-currentUser}  ;
+currentUser,
+updateAccountDetials,
+updateAvatar,
+updateCoverImage} ;
