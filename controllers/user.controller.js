@@ -380,7 +380,86 @@ const logoutUser= asynchandle(async(req,res)=>
    
   })
 
+  
+  //subscriber count
 
+  const getUserChannelProfile= asynchandle(async(req,res)=>{
+    const {username}= req.params
+
+    if(!username?.trim()){
+      throw new Errorhandle(404,"Username not found")
+    }
+
+   const channel= await User.aggregate([
+      {
+        $match: {
+          username: username?.toLowerCase()
+        }
+      },
+      {
+        $lookup:{
+          from: "subscriptions" , //j schema theke nicchi seta sob lower case and plural e
+          localField: "_id",
+          foreignField: "channel", //From subscriptions model
+          as: "subscribers"
+        }//we find here how  subscribers are
+
+      },
+
+      {
+        $lookup: {
+          from: "subscriptions" , //j schema theke nicchi seta sob lower case and plural e
+          localField: "_id",
+          foreignField: "subscriber", //From subscriptions model
+          as: "subscribed"
+         //we find here how  subscribed we
+        }
+      },
+
+      {
+        $addFields:{
+          subscribersCount: {
+            $size: "$subscribers" //$ sign lagano lagbe cause subscribers ekta field from as
+          },
+
+          channelSubscribedToCount: {
+            $size: "$subscribed"
+          },
+          //subscribe kora nki kora na eta dekhanor jnno...fronted k true  or false diye rkhbe baki ta se bujhe nibe
+
+          isSubscribed: {
+            $cond: {
+              if: {
+                $in: [req.user?._id, "$subscribers.subscriber"]
+              },
+              then: true,
+              else: false
+            }
+          }
+        }
+      },
+      {
+        $project:{
+          fullname:1,
+          username:1,
+          email:1,
+          avatar:1,
+          coverImage:1,
+          subscribersCount:1,
+          channelSubscribedToCount:1,
+          isSubscribed
+        }
+      }
+     
+    ])
+
+    if(!channel?.length){ //length kno ta bujhi nai.js e dekhte hbe
+      throw new Errorhandle(404, "Channel does not exist")
+    }
+    
+    return res.status(200)
+    .json(new Apiresponse(200, channel[0],"User channel run successfully"))
+  })
 
 
 export {registerUser,
@@ -392,4 +471,5 @@ oldNewPass,
 currentUser,
 updateAccountDetials,
 updateAvatar,
-updateCoverImage} ;
+updateCoverImage,
+getUserChannelProfile} ;
