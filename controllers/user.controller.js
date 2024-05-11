@@ -3,7 +3,8 @@ import { Errorhandle } from "../utils/Errorhandle.js";
 import { User } from "../models/user.models.js";
 import { uploadOncloudinary } from "../utils/cloudinary.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
-import jsonwebtoken from "jsonwebtoken"
+import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
 
 //refresh and accesstoken
 
@@ -12,8 +13,8 @@ const accessandRefreshTokens= async(userId)=>{
     
     const user= await User.findById(userId)
    
-    const accessToken= await User.generateAccessToken()
-    const refreshToken=await User.generateRefreshToken()
+    const accessToken=  User.generateAccessToken()
+    const refreshToken= User.generateRefreshToken()
 
     user.refreshToken=refreshToken
     await user.save({ validateBeforeSave:false })
@@ -224,7 +225,7 @@ const logoutUser= asynchandle(async(req,res)=>
       }
 //verify decodedtoken
      try {
-      const decodedToken= jsonwebtoken.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+      const decodedToken= jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
  
          const user= await User.findById(decodedToken?._id)
          
@@ -241,7 +242,7 @@ const logoutUser= asynchandle(async(req,res)=>
            secure: true
          }
  
-     const {accessToken, newrefreshToken} = await  accessAndRefreshTokens(user._id)
+     const {accessToken, newrefreshToken} = await accessandRefreshTokens(user._id)
  
        return res.status(200)
        .cookie("accessToken",accessToken, options)
@@ -462,6 +463,59 @@ const logoutUser= asynchandle(async(req,res)=>
   })
 
 
+  //watch history dekhanor jnno
+
+  const getWatchHistory= asynchandle(async(req,res)=>{
+      const user= await User.aggregate([
+        {
+          $match:{
+            _id: new mongoose.Types.ObjectId(req.user._id)
+          }
+        },
+        {
+          $lookup:{
+            from: "videos",
+            localField:"watchHistory",
+            foreignField:"_id",
+            as: "watchhistory",
+
+            pipeline: [
+              {
+                $lookup: {
+                  from: "users",
+                  localField:" owner",
+                  foreignField: "_id",
+                  as:"owner",
+
+                  pipeline:[
+                    {
+                      $project:{
+                        fullname:1,
+                        avatar:1,
+                        
+                      }
+                    },
+                    {
+                      $addFields:{
+                        owner: {
+                          $first: "$owner"  //first or arrayelmat hcche array declare kora.orthat ekta owner er sob value niye ashbe
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        
+      ])
+
+      return res.status(200)
+      .json(new Apiresponse(200, user[0].watchHistory, "Watch History succesful"))  //shudhu matro user er watchhistory dekhte chai.user dile bakisob o show korto
+
+  })
+
 export {registerUser,
   loginUser,
   logoutUser,
@@ -472,4 +526,5 @@ currentUser,
 updateAccountDetials,
 updateAvatar,
 updateCoverImage,
-getUserChannelProfile} ;
+getUserChannelProfile,
+getWatchHistory} ;
