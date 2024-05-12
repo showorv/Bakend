@@ -13,8 +13,8 @@ const accessandRefreshTokens= async(userId)=>{
     
     const user= await User.findById(userId)
    
-    const accessToken=  User.generateAccessToken()
-    const refreshToken= User.generateRefreshToken()
+    const accessToken=  user.generateAccessToken()
+    const refreshToken= user.generateRefreshToken()
 
     user.refreshToken=refreshToken
     await user.save({ validateBeforeSave:false })
@@ -194,7 +194,7 @@ const logoutUser= asynchandle(async(req,res)=>
       req.user._id,
 
       {
-        refreshToken:undefined //jehetu logout korar age refresh token muche dite hbe
+        refreshToken:null //jehetu logout korar age refresh token muche dite hbe
       },
 
       {
@@ -448,7 +448,7 @@ const logoutUser= asynchandle(async(req,res)=>
           coverImage:1,
           subscribersCount:1,
           channelSubscribedToCount:1,
-          isSubscribed
+          isSubscribed:1
         }
       }
      
